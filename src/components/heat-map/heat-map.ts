@@ -1,6 +1,8 @@
 // This example requires the Visualization library. Include the libraries=visualization
 // parameter when you first load the API. For example:
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
+import { Point } from '../../interfaces/Point';
+import { ApiManager } from '../api-manager/api-manager';
 import template from './heat-map.html';
 
 let map: google.maps.Map, heatmap: google.maps.visualization.HeatmapLayer;
@@ -24,15 +26,16 @@ export class HeatMap {
 
     }
 
-    public initMap = (): void => {
+    public initMap = async (): Promise<void> => {
         map = new google.maps.Map(document.getElementById("map") as HTMLElement, {
-            zoom: 13,
-            center: { lat: 37.775, lng: -122.434 },
+            zoom: 17,
+            center: { lat: 	-29.697185811920143, lng: -52.43834566931921 },
             mapTypeId: "satellite",
         });
+        const data = await this.getPoints();
 
         heatmap = new google.maps.visualization.HeatmapLayer({
-            data: this.getPoints(),
+            data: data,
             map: map,
         });
 
@@ -77,16 +80,16 @@ export class HeatMap {
     }
 
     // Heatmap data: 500 Points
-    public getPoints() {
-        return [
-            new google.maps.LatLng(37.782551, -122.445368),
-            new google.maps.LatLng(37.782745, -122.444586),
-            new google.maps.LatLng(37.782842, -122.443688),
-            new google.maps.LatLng(37.782919, -122.442815),
-            new google.maps.LatLng(37.782992, -122.442112),
-            new google.maps.LatLng(37.7831, -122.441461),
-            new google.maps.LatLng(37.783206, -122.440829),
+    public async getPoints() {
+        
+        const api = new ApiManager();
+        const points: Array<Point> = await api.getPoints(); //esquema dos parâmetros depois
+        let gPoints: Array<any> = [];
 
-        ];
+        points.forEach( (point) => {
+            const t =  new google.maps.LatLng(point.latitude, point.longitude)
+            gPoints.push(t)
+        })
+        return gPoints
     }
 }

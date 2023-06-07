@@ -1,3 +1,4 @@
+import { ApiManager } from "../components/api-manager/api-manager";
 import { HeatMap } from "../components/heat-map/heat-map";
 
 type RouteHandler = () => void;
@@ -5,7 +6,6 @@ type RouteMap = Record<string, RouteHandler>;
 
 export class Router {
   public handleHomeRoute (): void {
-   
     const heatMap = new HeatMap();
     void heatMap.render();
   }
