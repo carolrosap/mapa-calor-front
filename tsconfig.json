@@ -16,6 +16,6 @@
     "node_modules"
   ],
   "files": [
-    "src/components/component-example/component-example.d.ts"
+    "src/components/heat-map/heat-map.d.ts"
   ]
 }

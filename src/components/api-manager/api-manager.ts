@@ -3,9 +3,6 @@ import { Point } from '../../interfaces/Point'
 
 export class ApiManager {
     public async getPoints(params: any = undefined): Promise<any> {
-        // const params = {
-        //     movelTipoConec: 'Desconhecido'
-        // };
         try {
             let response
             const url = 'https://apiconectividadeunisc--lucasfreitag.repl.co/'

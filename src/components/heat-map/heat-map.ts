@@ -14,7 +14,6 @@ declare global {
 }
 
 export class HeatMap {
-
     async render(): Promise<void> {
         const element = document.createElement('div');
         element.classList.add('container');
@@ -27,9 +26,14 @@ export class HeatMap {
     }
 
     public initMap = async (): Promise<void> => {
+
+        const lat = window.innerWidth < 768 ? -29.697619124680667 : -29.6978478;
+        const lng = window.innerWidth < 768 ? -52.43645461408208 : -52.4366833;
+        const zoom = window.innerWidth < 768 ? 18 : 17;
+
         map = new google.maps.Map(document.getElementById("map") as HTMLElement, {
-            zoom: 17,
-            center: { lat: 	-29.697185811920143, lng: -52.43834566931921 },
+            zoom: zoom,
+            center: { lat: lat, lng: lng },
             mapTypeId: "satellite",
         });
         const data = await this.getPoints();
@@ -37,17 +41,56 @@ export class HeatMap {
         heatmap = new google.maps.visualization.HeatmapLayer({
             data: data,
             map: map,
+            radius: 25,
+            opacity: 1,
         });
-
-        document.getElementById("toggle-heatmap")!.addEventListener("click", this.toggleHeatmap.bind(this));
         document.getElementById("change-gradient")!.addEventListener("click", this.changeGradient.bind(this));
         document.getElementById("change-opacity")!.addEventListener("click", this.changeOpacity.bind(this));
         document.getElementById("change-radius")!.addEventListener("click", this.changeRadius.bind(this));
-        
+        document.getElementById("wifi")!.addEventListener("click", this.reload.bind(this));
+        document.getElementById("movel")!.addEventListener("click", this.reload.bind(this));
+    }
+    public changeRadius(): void {
+        heatmap.set("radius", heatmap.get("radius") === 25 ? 20 : 25);
+    }
+    public changeOpacity(): void {
+        heatmap.set("opacity", heatmap.get("opacity") === 1 ? 0.8 : 1);
+    }
+    public async getPoints() {
+        const api = new ApiManager();
+        const points: Array<Point> = await api.getPoints(); //esquema dos parâmetros depois
+        let gPoints: { location: google.maps.LatLng, weight: number }[] = [];
+
+        const wifi = document.getElementById('wifi') as HTMLInputElement;
+        const movel = document.getElementById('movel') as HTMLInputElement;
+
+        points.forEach((point) => {
+            let weight = 0;
+            if (wifi && wifi.checked) {
+                weight = point.wifi
+            } else if (movel && movel.checked) {
+                let minValue = -115; // o valor mínimo possível para dBm em seu caso
+                weight = point.movel + Math.abs(minValue); // isto será positivo
+            }
+
+            const t = { location: new google.maps.LatLng(point.latitude, point.longitude), weight: weight };
+            gPoints.push(t);
+        });
+
+        return gPoints;
     }
 
-    public toggleHeatmap(): void {
-        heatmap.setMap(heatmap.getMap() ? null : map);
+    public async reload(ev: MouseEvent): Promise<void> {
+        const data = await this.getPoints(); 
+        if (heatmap) {
+            heatmap.setMap(null); 
+            heatmap = new google.maps.visualization.HeatmapLayer({
+                data: data,
+                map: map,
+                radius: 25,
+                opacity: 1,
+            });
+        }
     }
 
     public changeGradient(): void {
@@ -69,27 +112,5 @@ export class HeatMap {
         ];
 
         heatmap.set("gradient", heatmap.get("gradient") ? null : gradient);
-    }
-
-    public changeRadius(): void {
-        heatmap.set("radius", heatmap.get("radius") ? null : 20);
-    }
-
-    public changeOpacity(): void {
-        heatmap.set("opacity", heatmap.get("opacity") ? null : 0.2);
-    }
-
-    // Heatmap data: 500 Points
-    public async getPoints() {
-        
-        const api = new ApiManager();
-        const points: Array<Point> = await api.getPoints(); //esquema dos parâmetros depois
-        let gPoints: Array<any> = [];
-
-        points.forEach( (point) => {
-            const t =  new google.maps.LatLng(point.latitude, point.longitude)
-            gPoints.push(t)
-        })
-        return gPoints
     }
 }
