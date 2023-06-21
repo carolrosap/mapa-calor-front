@@ -10,9 +10,7 @@ export class ApiManager {
                 response = await axios.get(url);
             else
                 response = await axios.get(url, { params });
-            
             const points: Array<Point> = response.data;
-            console.log(points)
             return points;
         } catch (error) {
             console.log('error reading data from API');
